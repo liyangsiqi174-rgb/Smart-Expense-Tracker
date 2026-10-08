@@ -31,6 +31,9 @@ fun TransactionsScreen() {
     var category by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("expense") }
+    var editingTransaction by remember {
+        mutableStateOf<Transaction?>(null)
+    }
 
     Column(
         modifier = Modifier
@@ -114,8 +117,7 @@ fun TransactionsScreen() {
         Button(
             onClick = {
 
-                val transactionAmount =
-                    amount.toDoubleOrNull()
+                val transactionAmount = amount.toDoubleOrNull()
 
                 if (
                     transactionAmount != null &&
@@ -123,26 +125,46 @@ fun TransactionsScreen() {
                     category.isNotBlank()
                 ) {
 
-                    AppState.addTransaction(
-                        Transaction(
-                            id = System.currentTimeMillis(),
+                    if (editingTransaction != null) {
+
+                        AppState.updateTransaction(
+                            id = editingTransaction!!.id,
                             amount = transactionAmount,
-                            type = type,
                             category = category,
                             description = description,
-                            date = ""
+                            type = type
                         )
-                    )
+
+                    } else {
+
+                        AppState.addTransaction(
+                            Transaction(
+                                id = System.currentTimeMillis(),
+                                amount = transactionAmount,
+                                type = type,
+                                category = category,
+                                description = description,
+                                date = java.time.LocalDate.now().toString()
+                            )
+                        )
+                    }
 
                     amount = ""
                     category = ""
                     description = ""
                     type = "expense"
+                    editingTransaction = null
                 }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Add Transaction")
+            Text(
+                text = if (editingTransaction == null) {
+                    "Add Transaction"
+                } else {
+                    "Save Changes"
+                }
+            )
         }
 
         Spacer(
@@ -164,7 +186,16 @@ fun TransactionsScreen() {
             ) { transaction ->
 
                 TransactionItem(
-                    transaction = transaction
+                    transaction = transaction,
+                    onEdit = {
+
+                        editingTransaction = transaction
+
+                        amount = transaction.amount.toString()
+                        category = transaction.category
+                        description = transaction.description
+                        type = transaction.type
+                    }
                 )
             }
         }
@@ -173,9 +204,9 @@ fun TransactionsScreen() {
 
 @Composable
 fun TransactionItem(
-    transaction: Transaction
+    transaction: Transaction,
+    onEdit: () -> Unit
 ) {
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,7 +215,6 @@ fun TransactionItem(
     ) {
 
         Column {
-
             Text(
                 text = transaction.description
             )
@@ -194,12 +224,29 @@ fun TransactionItem(
             )
         }
 
-        Text(
-            text = if (transaction.type == "income") {
-                "+$%.2f".format(transaction.amount)
-            } else {
-                "-$%.2f".format(transaction.amount)
+        Row {
+
+            Text(
+                text = if (transaction.type == "income") {
+                    "+$%.2f".format(transaction.amount)
+                } else {
+                    "-$%.2f".format(transaction.amount)
+                }
+            )
+
+            Button(
+                onClick = onEdit
+            ) {
+                Text("Edit")
             }
-        )
+
+            Button(
+                onClick = {
+                    AppState.deleteTransaction(transaction.id)
+                }
+            ) {
+                Text("Delete")
+            }
+        }
     }
 }

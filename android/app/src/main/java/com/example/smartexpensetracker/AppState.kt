@@ -20,6 +20,27 @@ object AppState {
         }
     }
 
+    fun updateTransaction(
+        id: Long,
+        amount: Double,
+        category: String,
+        description: String,
+        type: String
+    ) {
+        val index = transactions.indexOfFirst {
+            it.id == id
+        }
+
+        if (index != -1) {
+            transactions[index] = transactions[index].copy(
+                amount = amount,
+                category = category,
+                description = description,
+                type = type
+            )
+        }
+    }
+
     fun updateBudget(amount: Double) {
         budget.value = amount
     }

@@ -30,6 +30,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.smartexpensetracker.ui.theme.SmartExpenseTrackerTheme
 import com.example.smartexpensetracker.ui.screens.TransactionsScreen
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import com.example.smartexpensetracker.ui.screens.BudgetScreen
+import com.example.smartexpensetracker.ui.screens.InsightsScreen
+import com.example.smartexpensetracker.ui.screens.ProfileScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -177,11 +186,136 @@ fun AppNavigation() {
 @Composable
 fun HomeScreen() {
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    val income = AppState.totalIncome()
+    val expenses = AppState.totalExpenses()
+    val balance = AppState.balance()
+    val budget = AppState.budget.value
+    val remainingBudget = AppState.remainingBudget()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
     ) {
-        Text("Home")
+
+        Text(
+            text = "Smart Expense Tracker",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(
+            modifier = Modifier.height(30.dp)
+        )
+
+        Text(
+            text = "Current Balance",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        Text(
+            text = "$${"%.2f".format(balance)}",
+            style = MaterialTheme.typography.displaySmall
+        )
+
+        Spacer(
+            modifier = Modifier.height(30.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Column {
+                Text("Income")
+                Text(
+                    "$${"%.2f".format(income)}",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+
+            Column {
+                Text("Expenses")
+                Text(
+                    "$${"%.2f".format(expenses)}",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(30.dp)
+        )
+
+        Text(
+            text = "Budget",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        Text(
+            text = "Monthly Budget: $${"%.2f".format(budget)}"
+        )
+
+        Text(
+            text = "Remaining: $${"%.2f".format(remainingBudget)}"
+        )
+
+        Spacer(
+            modifier = Modifier.height(30.dp)
+        )
+
+        Text(
+            text = "Recent Transactions",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Spacer(
+            modifier = Modifier.height(10.dp)
+        )
+
+        if (AppState.transactions.isEmpty()) {
+
+            Text("No transactions yet")
+
+        } else {
+
+            AppState.transactions
+                .takeLast(5)
+                .reversed()
+                .forEach { transaction ->
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement =
+                            Arrangement.SpaceBetween
+                    ) {
+
+                        Column {
+                            Text(transaction.description)
+                            Text(transaction.category)
+                        }
+
+                        Text(
+                            text =
+                                if (transaction.type == "income") {
+                                    "+$${"%.2f".format(transaction.amount)}"
+                                } else {
+                                    "-$${"%.2f".format(transaction.amount)}"
+                                }
+                        )
+                    }
+                }
+        }
     }
 }
 
